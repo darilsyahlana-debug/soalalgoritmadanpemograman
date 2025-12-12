@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UAS HOTS - Algoritma & Pemrograman (Modul 1-9) — Interaktif</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#0b1220; --muted:#94a3b8; --accent:#06b6d4;
+    --success:#16a34a; --danger:#ef4444; --glass: rgba(255,255,255,0.03);
+    --card-pad:18px;
+  }
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:linear-gradient(180deg,#071127 0%, #071733 60%); color:#e6eef8; margin:0; padding:28px;}
+  .container{max-width:980px;margin:0 auto;}
+  header{display:flex;gap:18px;align-items:center;margin-bottom:18px}
+  header h1{font-size:20px;margin:0}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; padding:var(--card-pad); box-shadow:0 6px 24px rgba(2,6,23,0.6); margin-bottom:16px;}
+  .meta{color:var(--muted); font-size:13px}
+  .question-area{min-height:220px;}
+  .q-number{font-weight:600; color:var(--accent)}
+  .q-text{margin:10px 0 14px; font-size:16px; line-height:1.35}
+  .options{display:flex;flex-direction:column;gap:8px}
+  .opt{background:var(--glass); padding:10px;border-radius:8px; cursor:pointer; border:1px solid transparent; transition:all .12s; user-select:none}
+  .opt:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(2,6,23,0.5)}
+  .opt.selected{border-color:rgba(6,182,212,0.25); box-shadow:0 8px 26px rgba(6,182,212,0.06)}
+  .controls{display:flex;gap:8px; margin-top:14px; align-items:center}
+  button{background:var(--accent); color:#042024; border:none; padding:8px 12px; border-radius:8px; font-weight:600; cursor:pointer}
+  button.ghost{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03)}
+  .progress{height:10px;background:rgba(255,255,255,0.03); border-radius:999px; overflow:hidden}
+  .progress > i{display:block;height:100%; background:linear-gradient(90deg,var(--accent),#7c3aed); width:0%}
+  .small{font-size:13px;color:var(--muted)}
+  .results{display:none}
+  .result-card{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(22,163,74,0.07), rgba(6,182,212,0.02)); color:#ddfbf8}
+  .wrong{background:linear-gradient(180deg, rgba(239,68,68,0.06), rgba(255,255,255,0.01))}
+  .explanation{margin-top:10px;color:var(--muted); font-size:13px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px}
+  .analysis{margin-top:14px; font-size:14px; color:#dbeafe; line-height:1.45}
+  footer{margin-top:18px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap}
+  .ref{font-size:12px;color:var(--muted)}
+  .badge{font-size:12px; padding:6px 8px; border-radius:999px; background:rgba(255,255,255,0.02); color:var(--muted)}
+  .table{width:100%; border-collapse:collapse; margin-top:10px}
+  .table td{padding:8px; border-top:1px dashed rgba(255,255,255,0.02); font-size:13px}
+  .feedback{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:12px; border-radius:10px}
+  .score-box{display:flex;gap:12px;align-items:center}
+  .score-big{font-size:42px;font-weight:800;color:var(--accent)}
+  @media (max-width:720px){
+    body{padding:18px}
+    .card{padding:14px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>UAS HOTS — Algoritma & Pemrograman (Modul 1–9)</h1>
+      <div class="meta">50 soal | Pilihan ganda, sebab-akibat, benar/salah, analisis teks | Sumber utama: Kani, Modul Algoritma & Pemrograman (Modul 1–9).</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div class="badge">Bobot: Mudah=1, Sedang=2, Sulit=3</div>
+      <div class="small" style="margin-top:6px">Interaktif — pilih jawaban lalu <strong>Next</strong></div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="question-area">
+      <div class="q-number">Soal <span id="qIdx">1</span> / 50</div>
+      <div class="q-text" id="qText">Memuat pertanyaan...</div>
+      <div class="options" id="options"></div>
+
+      <div class="controls">
+        <div style="flex:1">
+          <div class="progress" aria-hidden><i id="progBar" style="width:0%"></i></div>
+        </div>
+        <div>
+          <button id="prevBtn" class="ghost" onclick="prevQ()" disabled>Prev</button>
+          <button id="nextBtn" onclick="nextQ()">Next</button>
+          <button id="submitBtn" style="display:none;background:#10b981;color:#042024" onclick="submitAll()">Submit</button>
+        </div>
+      </div>
+      <div class="small" style="margin-top:8px">Tipe soal: <span id="qType" class="small"></span></div>
+    </div>
+  </div>
+
+  <div id="results" class="card results">
+    <div class="result-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="small">Skor Total</div>
+          <div class="score-box"><div class="score-big" id="scoreVal">0</div><div class="small" style="color:var(--muted)"><div id="scorePercent">0%</div><div id="masteryLabel">-</div></div></div>
+        </div>
+        <div style="min-width:260px">
+          <div class="small">Rincian:</div>
+          <table class="table" id="summaryTable">
+            <!-- rows injected -->
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="analysis" id="finalAnalysis">
+        <!-- analysis text -->
+      </div>
+
+      <div style="margin-top:12px" class="feedback" id="finalFeedback">
+        <!-- feedback -->
+      </div>
+
+      <div style="margin-top:12px">
+        <button onclick="restart()">Coba Lagi</button>
+        <button class="ghost" onclick="downloadReport()">Download Laporan</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="ref">Referensi utama: Kani, M.Kom. (n.d.), Modul Algoritma dan Pemrograman — Universitas Terbuka. (Kutipan dalam pembahasan ditandai (Kani, n.d.))</div>
+    <div class="small">Dibuat untuk tujuan latihan UAS HOTS — jika ingin file Word / HTML export, minta saja.</div>
+  </footer>
+</div>
+
+<script>
+/*
+  Data: 50 soal, setiap soal:
+  { id, text, options: [..], correct: index (0-based), explanation, type, weight }
+  Types: "Direct", "TrueFalse", "SebabAkibat", "Analisis", "Code"
+  Weights: easy=1 (1-15), medium=2 (16-35), hard=3 (36-50)
+*/
+const questions = [
+/* 1-15 easy weight 1 */
+{ id:1, text:"Algoritma dikatakan finite apabila…", options:["Selalu dapat diulang tanpa henti","Memiliki akhir setelah langkah-langkah tertentu","Hanya dapat ditulis dalam bahasa pemrograman","Berjalan lebih cepat dari program biasa"], correct:1, explanation:"Finite = memiliki akhir/berhenti dalam waktu terbatas (Kani, n.d.).", type:"Direct", weight:1 },
+{ id:2, text:"Bahasa pemrograman Java termasuk kategori…", options:["Bahasa tingkat rendah","Bahasa rakitan","Bahasa tingkat tinggi","Bahasa mesin"], correct:2, explanation:"Java adalah bahasa tingkat tinggi (lebih menyerupai bahasa manusia). (Kani, n.d.)", type:"Direct", weight:1 },
+{ id:3, text:"Pernyataan: “Setiap program pasti merupakan algoritma.” (Benar/Salah)", options:["Benar","Salah"], correct:1, explanation:"Algoritma adalah desain/konsep; program adalah implementasi — tidak semua program direpresentasikan eksplisit sebagai algoritma yang baik.", type:"TrueFalse", weight:1 },
+{ id:4, text:"Variabel yang hanya dapat menyimpan nilai true/false adalah tipe…", options:["int","boolean","char","float"], correct:1, explanation:"Tipe boolean menyimpan true/false.", type:"Direct", weight:1 },
+{ id:5, text:"Hasil dari 10 % 3 adalah…", options:["0","1","2","3"], correct:1, explanation:"10 modulo 3 = 1.", type:"Direct", weight:1 },
+{ id:6, text:"Pernyataan pada Java yang digunakan untuk menghentikan perulangan sebelum selesai adalah…", options:["break","continue","stop","exit"], correct:0, explanation:"break menghentikan perulangan secara langsung.", type:"Direct", weight:1 },
+{ id:7, text:"Array dua dimensi A[3][4] memiliki…", options:["3 kolom dan 4 baris","3 baris dan 4 kolom","7 elemen","12 indeks negatif"], correct:1, explanation:"Notation A[rows][cols] → 3 baris x 4 kolom.", type:"Direct", weight:1 },
+{ id:8, text:"Ekspresi !(5 > 3) menghasilkan…", options:["true","false","error","tidak terdefinisi"], correct:1, explanation:"5>3 true, negasinya false.", type:"Direct", weight:1 },
+{ id:9, text:"File Java hanya dapat memiliki satu…", options:["class","method","public class","variabel"], correct:2, explanation:"Satu file (dengan nama file tertentu) hanya boleh memiliki satu public class.", type:"Direct", weight:1 },
+{ id:10, text:"Sorting yang membandingkan elemen berdekatan dan menukarnya bila tidak urut adalah…", options:["Merge Sort","Selection Sort","Bubble Sort","Insertion Sort"], correct:2, explanation:"Bubble sort menukar elemen berdekatan bila out-of-order.", type:"Direct", weight:1 },
+{ id:11, text:"Simbol jajar genjang dalam flowchart menyatakan…", options:["Proses","Keputusan","Input/Output","Terminator"], correct:2, explanation:"Jajar genjang = input/output.", type:"Direct", weight:1 },
+{ id:12, text:"Program aplikasi berjalan…", options:["Di luar OS","Di atas OS","Menggantikan OS","Tanpa OS"], correct:1, explanation:"Program aplikasi berjalan di atas sistem operasi.", type:"Direct", weight:1 },
+{ id:13, text:"Nilai x setelah int x = 5; x++; adalah…", options:["5","6","7","Error"], correct:1, explanation:"Post-increment menambah nilai setelah evaluasi.", type:"Direct", weight:1 },
+{ id:14, text:"Pernyataan if dijalankan hanya jika ekspresi bernilai…", options:["0","false","true","null"], correct:2, explanation:"if dijalankan saat kondisi boolean true.", type:"Direct", weight:1 },
+{ id:15, text:"Tahap pertama pemecahan masalah menurut modul adalah…", options:["Menguji program","Membuat dokumentasi","Menganalisis masalah","Menulis kode"], correct:2, explanation:"Analisa masalah dan menyusun algoritma adalah tahap pertama. (Kani, n.d.)", type:"Direct", weight:1 },
+
+/* 16-35 medium weight 2 */
+{ id:16, text:"1) Algoritma memiliki sifat definiteness. 2) Karena setiap langkah harus jelas dan tidak ambigu. Pilih hubungan yang benar.", options:["1 benar, 2 benar & 2 menjelaskan 1","1 benar, 2 benar tapi tidak saling terkait","1 benar, 2 salah","1 salah, 2 benar"], correct:0, explanation:"Definiteness = setiap instruksi jelas, jadi pernyataan 2 menjelaskan 1.", type:"SebabAkibat", weight:2 },
+{ id:17, text:"Perhatikan kode:\nint a = 3, b = 6;\nif (a * 2 == b) System.out.println(\"Sama\"); else System.out.println(\"Tidak\");\nOutput?", options:["Sama","Tidak","Error","Tidak muncul apa-apa"], correct:0, explanation:"3*2 == 6 sehingga kondisi true.", type:"Code", weight:2 },
+{ id:18, text:"Diberikan array: int x[] = {4, 8, 2, 6, 1}; Elemen indeks 3 adalah…", options:["4","8","6","1"], correct:2, explanation:"Indeks dimulai 0 → x[3]=6.", type:"Direct", weight:2 },
+{ id:19, text:"Method dengan kata kunci void berarti…", options:["Tidak memiliki parameter","Tidak mengembalikan nilai","Tidak dapat dipanggil","Hanya untuk class tertentu"], correct:1, explanation:"void berarti tidak mengembalikan nilai.", type:"Direct", weight:2 },
+{ id:20, text:"While berhenti ketika…", options:["Kondisi false","Kondisi true","Blok kosong","Tidak ada variabel"], correct:0, explanation:"While memeriksa kondisi; jika false loop berhenti.", type:"Direct", weight:2 },
+{ id:21, text:"Switch case cocok digunakan untuk…", options:["Kondisi rentang nilai","Perbandingan boolean rumit","Pilihan konstanta diskrit","Perulangan otomatis"], correct:2, explanation:"Switch untuk nilai konstanta diskrit (cases).", type:"Direct", weight:2 },
+{ id:22, text:"Perhatikan: for (int i = 1; i < 5; i+=2) System.out.print(i + \" \"); Keluaran?", options:["1 2 3 4","1 3","1 3 5","1 2 4"], correct:1, explanation:"i=1 lalu i=3, lalu berhenti (i<5).", type:"Code", weight:2 },
+{ id:23, text:"Exception terjadi ketika…", options:["Program berjalan normal","Terjadi kondisi abnormal runtime","Variabel tidak dideklarasikan","Komputer mati mendadak"], correct:1, explanation:"Exception = kondisi abnormal saat runtime.", type:"Direct", weight:2 },
+{ id:24, text:"Pseudocode bersifat…", options:["Berbasis bahasa alami","Harus dapat dikompilasi","Harus dalam bahasa Java","Tidak boleh menggunakan indentasi"], correct:0, explanation:"Pseudocode ditulis dalam bahasa alami/terstruktur untuk manusia.", type:"Direct", weight:2 },
+{ id:25, text:"Selection Sort menemukan…", options:["Elemen terbesar lalu memindahkannya","Elemen terkecil lalu menempatkannya","Elemen tengah lalu ditukar","Semua elemen sekaligus"], correct:1, explanation:"Selection sort mencari elemen terkecil dan menempatkannya.", type:"Direct", weight:2 },
+{ id:26, text:"Method main harus memiliki parameter…", options:["(int args[])","(String args[])","(char args[])","(double[] arg)"], correct:1, explanation:"Signature main biasanya public static void main(String[] args).", type:"Direct", weight:2 },
+{ id:27, text:"Nilai true && false adalah…", options:["true","false","error","tergantung compiler"], correct:1, explanation:"Operator && hanya true jika kedua operand true.", type:"Direct", weight:2 },
+{ id:28, text:"Perulangan for bersarang minimal terdiri dari…", options:["Satu for","Dua for","Tiga for","Bebas"], correct:1, explanation:"Bersarang berarti minimal dua perulangan.", type:"Direct", weight:2 },
+{ id:29, text:"Perhatikan: int a[][] = {{2,4},{6,8},{10,12}}; System.out.print(a[2][0]); Output?", options:["2","6","10","Error"], correct:2, explanation:"Baris ke-2 (index 2) elemen ke-0 = 10.", type:"Code", weight:2 },
+{ id:30, text:"If bersarang digunakan ketika…", options:["Hanya satu kondisi","Kondisi harus berurutan dan bertingkat","Tidak ada kondisi","Semua kondisi salah"], correct:1, explanation:"If bersarang mengeksekusi percabangan bertingkat/hierarki.", type:"Direct", weight:2 },
+{ id:31, text:"1) While memeriksa kondisi di awal. 2) Karena while dapat tidak menjalankan blok sama sekali. Pilih hubungan.", options:["1 & 2 benar, 2 menjelaskan 1","1 benar, 2 salah","1 salah, 2 benar","1 & 2 benar tapi tidak terkait"], correct:0, explanation:"While memeriksa kondisi di awal sehingga mungkin tidak menjalankan blok sama sekali.", type:"SebabAkibat", weight:2 },
+{ id:32, text:"Algoritma efektif bila…", options:["Menggunakan sintaks kompleks","Mengerjakan langkah sederhana yang dapat diproses","Menghasilkan banyak keluaran","Menggunakan hanya satu bahasa"], correct:1, explanation:"Effectiveness = operasi sederhana dan dapat diselesaikan cepat.", type:"Direct", weight:2 },
+{ id:33, text:"Method overloading terjadi ketika…", options:["Nama sama, parameter berbeda","Nama beda, parameter sama","Nama sama, kode sama","Nama sama, return wajib sama"], correct:0, explanation:"Overload = nama sama, parameter berbeda.", type:"Direct", weight:2 },
+{ id:34, text:"NullPointerException terjadi jika…", options:["Variabel digunakan sebelum diberi nilai","Array kehabisan ruang","Metode tidak ditemukan","Tipe data tidak cocok"], correct:0, explanation:"NullPointerException ketika referensi null di-dereference.", type:"Direct", weight:2 },
+{ id:35, text:"Perhatikan: int x=7; if (x>10) x++; else x--; System.out.print(x); Output?", options:["6","7","8","10"], correct:0, explanation:"7>10 false sehingga x-- → 6.", type:"Code", weight:2 },
+
+/* 36-50 hard weight 3 */
+{ id:36, text:"int a=5; int b=a++; int c=++a; System.out.println(a + b + c); Hasil?", options:["17","18","19","20"], correct:2, explanation:"a:5 -> b=5 -> a becomes 6 -> ++a -> a=7 -> c=7 => sum 5+7+7=19.", type:"Code", weight:3 },
+{ id:37, text:"Selection sort pada [15,12,4,6,1], nilai terkecil pertama berada di…", options:["indeks 0","indeks 1","indeks 2","indeks 4"], correct:3, explanation:"Nilai terkecil 1 berada di indeks 4.", type:"Direct", weight:3 },
+{ id:38, text:"Jika while tidak pernah mengubah variabel kondisi, maka…", options:["Tetap berjalan normal","Bisa menjadi infinite loop","Langsung berhenti","Menghasilkan syntax error"], correct:1, explanation:"Tidak mengubah kondisi yang memicu loop menyebabkan infinite loop.", type:"Direct", weight:3 },
+{ id:39, text:"Algoritma yang membandingkan elemen j dan j-1 secara berulang adalah…", options:["Insertion Sort","Selection Sort","Bubble Sort","Merge Sort"], correct:0, explanation:"Insertion sort melakukan pergeseran dengan membandingkan elemen j dan j-1.", type:"Direct", weight:3 },
+{ id:40, text:"Kode:\nfor(int i=1;i<=3;i++){ for(int j=1;j<=i;j++){ System.out.print(\"*\"); }} Keluaran?", options:["***","* ** ***","* * *","****"], correct:1, explanation:"Loop menghasilkan: i=1 -> * ; i=2 -> ** ; i=3 -> *** → tampil: * ** *** (tanpa newline tiap baris).", type:"Code", weight:3 },
+{ id:41, text:"1) Program aplikasi berjalan karena ada OS. 2) Karena OS menyediakan layanan dasar. Pilih hubungan.", options:["1&2 benar, 2 menjelaskan 1","1 benar, 2 benar tapi tidak menjelaskan","1 benar, 2 salah","1 salah, 2 benar"], correct:0, explanation:"OS menyediakan layanan sehingga aplikasi bisa berjalan.", type:"SebabAkibat", weight:3 },
+{ id:42, text:"Manakah kondisi paling mungkin menimbulkan ArrayIndexOutOfBoundsException?", options:["a[0]","a[a.length-1]","a[a.length]","a[-1]"], correct:2, explanation:"Mengakses a[a.length] out of bounds (index max = length-1).", type:"Direct", weight:3 },
+{ id:43, text:"Pseudocode: baca x; if x%2=0 print 'genap' else print 'ganjil'. Jika input 11 → ?", options:["genap","ganjil","error","tidak ada output"], correct:1, explanation:"11 % 2 = 1 → ganjil.", type:"Code", weight:3 },
+{ id:44, text:"Percabangan if-else bertingkat digunakan ketika…", options:["Semua pilihan probabilitas sama","Ada hirarki prioritas kondisi","Hanya dua kondisi","Perlu melakukan perulangan"], correct:1, explanation:"If bertingkat untuk memilih berdasarkan prioritas kondisi.", type:"Direct", weight:3 },
+{ id:45, text:"Jebakan else: int x=10; if(x==10) if(x>5) x=x+2; else x=x-2; System.out.print(x); Output?", options:["8","12","10","14"], correct:1, explanation:"Else melekat pada if terdekat (x>5), jadi x becomes 12.", type:"Code", weight:3 },
+{ id:46, text:"Jika flowchart memiliki dua panah keluar dari diamond (keputusan), itu berarti…", options:["Pilihan ganda","Perulangan","Keputusan true/false","Input/Output"], correct:2, explanation:"Diamond = decision, biasanya true/false dua arah.", type:"Direct", weight:3 },
+{ id:47, text:"int[] x = {3,1,4,2}; int t = x[1] + x[3]; System.out.print(t); Hasil?", options:["3","4","5","6"], correct:2, explanation:"x[1]=1, x[3]=2 => 3? Wait: 1+2=3. Correct answer should be 3.", type:"Code", weight:3 },
+{ id:48, text:"1) Method main adalah titik masuk program. 2) Karena compiler Java selalu memulai eksekusi dari method tersebut. Pilih hubungan.", options:["Keduanya benar & saling menjelaskan","Keduanya benar tapi tidak terkait","1 benar, 2 salah","1 salah, 2 benar"], correct:0, explanation:"Main adalah titik masuk; compiler/runtime mulai dari main.", type:"SebabAkibat", weight:3 },
+{ id:49, text:"Setelah tahap pertama Bubble Sort pada [5,3,8,2], posisi array menjadi…", options:["[3,5,2,8]","[3,5,8,2]","[5,3,2,8]","[5,3,8,2]"], correct:1, explanation:"Iterasi pertama bubble: compare 5&3 -> swap -> [3,5,8,2]; 5&8 no swap; 8&2 swap -> [3,5,2,8].", type:"Direct", weight:3 },
+{ id:50, text:"HOTS — Diberikan:\nint a=5,b=10; while(a<b){ a+=3; b-=2;} System.out.print(a-b); Hasil?", options:["0","1","2","3"], correct:0, explanation:"Iterasi: (5,10)->(8,8) loop stops. a-b = 0.", type:"Code", weight:3 }
+];
+
+// NOTE: correction for Q47: previously note indicates answer 3; ensure correct index 0-based -> 0 => "3"
+questions[46].correct = 0; // ensure q47 correct index 0 ("3")
+
+// state
+let current = 0;
+const answers = new Array(questions.length).fill(null); // store selected index or null
+
+// DOM refs
+const qIdxEl = document.getElementById('qIdx');
+const qTextEl = document.getElementById('qText');
+const optionsEl = document.getElementById('options');
+const progBar = document.getElementById('progBar');
+const qTypeEl = document.getElementById('qType');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const submitBtn = document.getElementById('submitBtn');
+const resultsEl = document.getElementById('results');
+const scoreValEl = document.getElementById('scoreVal');
+const scorePercentEl = document.getElementById('scorePercent');
+const masteryLabelEl = document.getElementById('masteryLabel');
+const summaryTable = document.getElementById('summaryTable');
+const finalAnalysis = document.getElementById('finalAnalysis');
+const finalFeedback = document.getElementById('finalFeedback');
+
+// render initial
+renderQuestion(0);
+
+function renderQuestion(idx){
+  current = idx;
+  const q = questions[idx];
+  qIdxEl.textContent = q.id;
+  qTextEl.textContent = q.text;
+  qTypeEl.textContent = q.type + " | Bobot: " + q.weight;
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const b = document.createElement('div');
+    b.className = 'opt';
+    b.tabIndex = 0;
+    b.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div style="min-width:22px;font-weight:700;color:var(--muted)">${String.fromCharCode(65+i)}</div><div style="flex:1">${opt}</div></div>`;
+    if(answers[idx] === i) b.classList.add('selected');
+    b.onclick = () => {
+      answers[idx] = i;
+      // update selection visuals
+      [...optionsEl.children].forEach((c,ci)=> c.classList.toggle('selected', ci===i));
+    };
+    b.onkeydown = (e) => { if(e.key === 'Enter') b.onclick(); };
+    optionsEl.appendChild(b);
+  });
+  // progress
+  const percent = Math.round(((idx)/questions.length)*100);
+  progBar.style.width = percent + '%';
+  prevBtn.disabled = idx===0;
+  // next/submit visibility
+  if(idx === questions.length - 1){
+    nextBtn.style.display = 'none';
+    submitBtn.style.display = 'inline-block';
+  } else {
+    nextBtn.style.display = 'inline-block';
+    submitBtn.style.display = 'none';
+  }
+}
+
+function nextQ(){
+  // allow if answered? For UAS style we don't block, but we'll allow navigation freely.
+  if(current < questions.length - 1) renderQuestion(current + 1);
+}
+function prevQ(){ if(current > 0) renderQuestion(current - 1); }
+
+function submitAll(){
+  // confirm if any unanswered
+  const unanswered = answers.reduce((acc,v,i)=> v===null ? acc.concat(i+1):acc,[]);
+  if(unanswered.length){
+    if(!confirm(`Masih ada ${unanswered.length} soal tanpa jawaban (contoh soal: ${unanswered.slice(0,5).join(',')}${unanswered.length>5?' ...':''}). Lanjutkan submit?`)) return;
+  }
+  computeResults();
+}
+
+function computeResults(){
+  // compute weighted score
+  let totalWeight = 0, obtained = 0;
+  let perCategory = {easy:{count:0,score:0,weight:0}, medium:{count:0,score:0,weight:0}, hard:{count:0,score:0,weight:0}};
+  const perQuestionResults = [];
+  for(let i=0;i<questions.length;i++){
+    const q = questions[i];
+    totalWeight += q.weight;
+    const selected = answers[i];
+    const correct = q.correct;
+    const isCorrect = selected === correct;
+    if(isCorrect) obtained += q.weight;
+    // categorize
+    const cat = q.weight===1?'easy': q.weight===2?'medium':'hard';
+    perCategory[cat].count++;
+    perCategory[cat].weight += q.weight;
+    if(isCorrect) perCategory[cat].score += q.weight;
+    perQuestionResults.push({i, selected, correct, isCorrect, text:q.text, explanation:q.explanation, weight:q.weight});
+  }
+
+  // show results area
+  resultsEl.style.display = 'block';
+  // score
+  scoreValEl.textContent = obtained + ' / ' + totalWeight;
+  const perc = Math.round((obtained/totalWeight)*100);
+  scorePercentEl.textContent = perc + '%';
+  let mastery = '';
+  if(perc >= 90) mastery = 'Baik sekali';
+  else if(perc >= 80) mastery = 'Baik';
+  else if(perc >= 70) mastery = 'Cukup';
+  else mastery = 'Kurang';
+  masteryLabelEl.textContent = mastery;
+
+  // populate summary table
+  summaryTable.innerHTML = `
+    <tr><td>Jumlah Soal</td><td>${questions.length}</td></tr>
+    <tr><td>Bobot Total</td><td>${totalWeight}</td></tr>
+    <tr><td>Skor Tercapai</td><td>${obtained}</td></tr>
+    <tr><td>Persentase</td><td>${perc}% (${mastery})</td></tr>
+    <tr><td>Rincian (mudah/sedang/sulit)</td><td>
+      benar: ${perCategory.easy.score}/${perCategory.easy.weight} (mudah), 
+      ${perCategory.medium.score}/${perCategory.medium.weight} (sedang), 
+      ${perCategory.hard.score}/${perCategory.hard.weight} (sulit)
+    </td></tr>
+  `;
+
+  // Detailed per question feedback appended after summary
+  const details = document.createElement('div');
+  details.innerHTML = `<h3 style="margin-top:14px">Rincian Per-Soal</h3>`;
+  perQuestionResults.forEach(r=>{
+    const wrap = document.createElement('div');
+    wrap.style.marginTop = '10px';
+    wrap.className = r.isCorrect? 'explanation':'explanation wrong';
+    wrap.innerHTML = `<strong>Soal ${r.i+1} (Bobot ${r.weight})</strong>
+      <div style="margin-top:6px">${r.text}</div>
+      <div style="margin-top:6px"><strong>Jawaban Anda:</strong> ${r.selected===null?'<em>(tidak dijawab)</em>': String.fromCharCode(65 + r.selected) + '. ' + questions[r.i].options[r.selected]}</div>
+      <div style="margin-top:4px"><strong>Kunci:</strong> ${String.fromCharCode(65 + r.correct)}. ${questions[r.i].options[r.correct]}</div>
+      <div style="margin-top:6px;color:var(--muted)">${r.explanation} <span style="color:var(--muted)"> (Kani, n.d.)</span></div>
+    `;
+    details.appendChild(wrap);
+  });
+
+  // analysis summary (HOTS) — synthesize from answers
+  const mistakes = perQuestionResults.filter(x=>!x.isCorrect).map(x=>x.i+1);
+  finalAnalysis.innerHTML = `
+    <h3>Analisis Hasil</h3>
+    <p>Anda menjawab benar pada ${obtained} dari total bobot ${totalWeight} (nilai ${perc}%). Area kekuatan: 
+    <strong>${perCategory.easy.score}/${perCategory.easy.weight}</strong> (mudah), <strong>${perCategory.medium.score}/${perCategory.medium.weight}</strong> (sedang), <strong>${perCategory.hard.score}/${perCategory.hard.weight}</strong> (sulit).</p>
+    <p>Polanya: ${generatePattern(perQuestionResults)}</p>
+    <p>Soal yang sering menjadi jebakan: ${mistakes.length? mistakes.slice(0,10).join(', '): 'Tidak ada (kerja bagus)'}${mistakes.length>10?' ...':''}.</p>
+  `;
+
+  finalFeedback.innerHTML = `
+    <h3>Saran & Feedback untuk Meningkatkan Pemahaman (HOTS)</h3>
+    <ul>
+      <li><strong>Perhatikan urutan eksekusi</strong> (post/pre-increment, urutan if-else) — praktikkan dengan memprediksi output sebelum menjalankan kode.</li>
+      <li><strong>Latihan manual sorting</strong> (bubble/selection/insertion) langkah-per-langkah untuk memahami perbedaan algoritma.</li>
+      <li><strong>Latih representasi</strong> — jadikan pseudocode & flowchart sebelum menulis kode untuk mengurangi kesalahan logika (Kani, n.d.).</li>
+      <li><strong>Perbaiki pemahaman indeks array</strong> (mulai dari 0) dan periksa batas (a.length).</li>
+      <li><strong>Gunakan unit testing kecil</strong> untuk metode/loop yang kompleks sehingga lebih mudah debug.</li>
+    </ul>
+    <p class="small" style="color:var(--muted)">Referensi dan kutipan pembahasan merujuk pada modul utama (Kani, n.d.).</p>
+  `;
+
+  // append details below finalFeedback
+  finalFeedback.appendChild(details);
+
+  // scroll to results
+  resultsEl.scrollIntoView({behavior:'smooth'});
+}
+
+function generatePattern(perQuestionResults){
+  // simple heuristic: check which categories have lower scores
+  const easyWrong = perQuestionResults.filter(r=>r.weight===1 && !r.isCorrect).length;
+  const medWrong = perQuestionResults.filter(r=>r.weight===2 && !r.isCorrect).length;
+  const hardWrong = perQuestionResults.filter(r=>r.weight===3 && !r.isCorrect).length;
+  let parts = [];
+  if(easyWrong > Math.max(medWrong, hardWrong)) parts.push('Kesalahan pada konsep dasar (mudah)');
+  if(medWrong >= Math.max(easyWrong, hardWrong)) parts.push('Perlu memperkuat struktur kontrol & arrays (menengah)');
+  if(hardWrong > Math.max(easyWrong, medWrong)) parts.push('Kesulitan pada penalaran multi-step & aritmetika kompleks (sulit)');
+  if(parts.length===0) parts.push('Distribusi kesalahan merata; fokus pada perbaikan kecil per-topik.');
+  return parts.join('; ');
+}
+
+// restart
+function restart(){
+  if(!confirm('Mulai ulang seluruh soal dan kosongkan jawaban?')) return;
+  for(let i=0;i<answers.length;i++) answers[i]=null;
+  resultsEl.style.display = 'none';
+  renderQuestion(0);
+}
+
+// download report (simple text)
+function downloadReport(){
+  const txt = buildReportText();
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Laporan_UAS_Algoritma.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildReportText(){
+  let s = 'LAPORAN UAS HOTS — Algoritma & Pemrograman\\n';
+  s += 'Sumber utama: Kani, M.Kom. (n.d.) Modul Algoritma & Pemrograman\\n\\n';
+  s += 'Jawaban per soal:\\n';
+  for(let i=0;i<questions.length;i++){
+    const q = questions[i];
+    s += `${i+1}. ${q.text}\\n  Pilihan Anda: ${answers[i]===null? '(tidak dijawab)': String.fromCharCode(65+answers[i]) + '. ' + q.options[answers[i]]}\\n  Kunci: ${String.fromCharCode(65+q.correct)}. ${q.options[q.correct]}\\n  Penjelasan: ${q.explanation} (Kani, n.d.)\\n\\n`;
+  }
+  return s;
+}
+
+// keyboard nav
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight') nextQ();
+  if(e.key === 'ArrowLeft') prevQ();
+});
+</script>
+</body>
+</html>
